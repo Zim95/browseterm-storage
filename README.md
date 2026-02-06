@@ -1,2 +1,2 @@
 # browseterm-storage
-Browseterm Storage Layer
+Storage abstraction for Browseterm.

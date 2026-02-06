@@ -1,0 +1,20 @@
+[project]
+name = "browseterm-storage"
+version = "0.1.0"
+description = "Storage abstraction for Browseterm (local PVC or MinIO)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "typing-extensions>=4.7.0",
+    "minio>=7.2.0",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
