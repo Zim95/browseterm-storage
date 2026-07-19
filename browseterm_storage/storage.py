@@ -50,6 +50,12 @@ class BrowsetermStorage(ABC):
         """Write data to storage."""
         pass
 
+    @abstractmethod
+    def localize(self, path: str, dest_dir: str) -> str:
+        """Ensure the object at `path` is available as a local file and return its local
+        filesystem path. Local backends return the path as-is; remote backends download it."""
+        pass
+
 
 class LocalPVCStorage(BrowsetermStorage):
     def __init__(self, config: StorageConfig) -> None:
@@ -85,6 +91,10 @@ class LocalPVCStorage(BrowsetermStorage):
 
         except Exception as e:
             raise IOError(f"Failed to write to {path}: {e}") from e
+
+    def localize(self, path: str, dest_dir: str) -> str:
+        # Snapshot already lives on the shared PVC; return the path as-is.
+        return path
 
 
 class MinioStorage(BrowsetermStorage):
@@ -145,6 +155,16 @@ class MinioStorage(BrowsetermStorage):
             )
         except Exception as e:
             raise IOError(f"Failed to write to MinIO {path}: {e}") from e
+
+    def localize(self, path: str, dest_dir: str) -> str:
+        try:
+            os.makedirs(dest_dir, exist_ok=True)
+            local_path = os.path.join(dest_dir, os.path.basename(path))
+            # fget_object streams to disk (no full in-memory load, unlike read()).
+            self.client.fget_object(self.bucket, path, local_path)
+            return local_path
+        except Exception as e:
+            raise IOError(f"Failed to download from MinIO {path}: {e}") from e
 
 
 def get_storage(storage_layer: StorageLayer, config: dict) -> BrowsetermStorage:

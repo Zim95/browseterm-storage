@@ -131,17 +131,40 @@ class TestLocalPVCStorage(unittest.TestCase):
         container_id = "test-container"
         timestamp = "ts"
         path = self.storage.snapshot_path(namespace, container_id, timestamp)
-        
+
         # Write initial data
         initial_data = b"Initial data"
         self.storage.write(path, initial_data)
-        
+
         # Overwrite with new data
         new_data = b"Updated data"
         self.storage.write(path, new_data)
-        
+
         # Verify new data is present
         self.assertEqual(self.storage.read(path), new_data)
+
+    def test_localize_returns_same_path(self):
+        """localize() should return the snapshot path unchanged (already on the PVC)."""
+        namespace = "test-namespace"
+        container_id = "test-container"
+        timestamp = "ts"
+        path = self.storage.snapshot_path(namespace, container_id, timestamp)
+
+        # dest_dir is irrelevant for the local backend; the path is returned as-is.
+        result = self.storage.localize(path, dest_dir="/some/other/dir")
+
+        self.assertEqual(result, path)
+
+    def test_localize_does_not_require_dest_dir_to_exist(self):
+        """localize() should not touch the filesystem for the local backend."""
+        path = "/an/arbitrary/snapshot.tar.gz"
+        nonexistent_dest = f"{self.temp_dir}/does-not-exist"
+
+        result = self.storage.localize(path, dest_dir=nonexistent_dest)
+
+        self.assertEqual(result, path)
+        # No directory should have been created as a side effect.
+        self.assertFalse(Path(nonexistent_dest).exists())
 
 
 if __name__ == "__main__":
