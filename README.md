@@ -104,3 +104,27 @@ Or add it as a dependency of another project:
 ```bash
 $ poetry add git+https://github.com/Zim95/browseterm-storage.git#main
 ```
+
+## Running tests
+
+Tests use Python's built-in `unittest` framework and live under `tests/`.
+They are pure unit tests — the MinIO client is mocked — so no live MinIO or
+other infrastructure is required to run them.
+
+First install the package and its dependencies into a virtual environment:
+
+```bash
+$ pip install -e .
+```
+
+Run all tests:
+
+```bash
+$ python -m unittest discover -s tests -p "test_*.py"
+```
+
+Run a single test module:
+
+```bash
+$ python -m unittest tests.test_minio_storage
+```
